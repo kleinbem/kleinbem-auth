@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - name: schema + boot smoke
+        env:
+          BETTER_AUTH_SECRET: ci-only-not-a-real-secret-0000000000000000
+          BETTER_AUTH_URL: http://localhost:3000
+          TRUSTED_ORIGINS: http://localhost:4321
+          DB_PATH: ./data/ci.db
+        run: |
+          node dist/migrate.js
+          node dist/server.js &
+          SRV=$!
+          sleep 2
+          curl -fsS http://localhost:3000/health
+          curl -fsS http://localhost:3000/api/auth/ok
+          kill $SRV

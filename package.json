@@ -1,0 +1,26 @@
+{
+  "name": "kleinbem-auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted auth service (better-auth + SQLite) for kleinbem.dev login",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "migrate": "node dist/migrate.js",
+    "dev": "node --watch --experimental-strip-types src/server.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-auth": "1.7.2",
+    "better-sqlite3": "^12.2.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.3"
+  }
+}
