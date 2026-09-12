@@ -24,7 +24,7 @@ if (missing.length) {
 const dbPath = process.env.DB_PATH ?? "./data/auth.db";
 mkdirSync(dirname(dbPath), { recursive: true });
 
-const trustedOrigins = process.env
+export const trustedOrigins = process.env
   .TRUSTED_ORIGINS!.split(",")
   .map((s) => s.trim())
   .filter(Boolean);
