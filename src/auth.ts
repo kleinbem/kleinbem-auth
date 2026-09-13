@@ -12,6 +12,9 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
  *   DB_PATH              - sqlite file path (default ./data/auth.db)
  *   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
  *   FACEBOOK_CLIENT_ID / FACEBOOK_CLIENT_SECRET
+ *   GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
+ *   LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET
+ *   MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET
  */
 
 const required = ["BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "TRUSTED_ORIGINS"] as const;
@@ -40,6 +43,24 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
   socialProviders.facebook = {
     clientId: process.env.FACEBOOK_CLIENT_ID,
     clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  };
+}
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  socialProviders.github = {
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  };
+}
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+  socialProviders.linkedin = {
+    clientId: process.env.LINKEDIN_CLIENT_ID,
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  };
+}
+if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+  socialProviders.microsoft = {
+    clientId: process.env.MICROSOFT_CLIENT_ID,
+    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
   };
 }
 
