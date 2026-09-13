@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { mailer, mailFrom } from "./mailer.js";
 
 /**
  * Required env:
@@ -15,6 +16,10 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
  *   GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
  *   LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET
  *   MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET
+ *   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
+ *     - optional; email+password sign-up and password reset only enable
+ *       once these exist (see mailer.ts) — off by default, same pattern
+ *       as the social providers above.
  */
 
 const required = ["BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "TRUSTED_ORIGINS"] as const;
@@ -71,7 +76,19 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins,
-  emailAndPassword: { enabled: false },
+  emailAndPassword: {
+    enabled: mailer !== null,
+    requireEmailVerification: false,
+    sendResetPassword: async ({ user, url }) => {
+      if (!mailer) return; // unreachable given enabled above, kept for type safety
+      await mailer.sendMail({
+        from: mailFrom,
+        to: user.email,
+        subject: "Reset your kleinbem.dev password",
+        text: `Click the link below to reset your password:\n\n${url}\n\nIf you didn't request this, ignore this email.`,
+      });
+    },
+  },
   socialProviders,
   advanced: {
     crossSubDomainCookies: {
