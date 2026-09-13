@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { createAuthMiddleware, APIError } from "better-auth/api";
 import { mailer, mailFrom } from "./mailer.js";
 
 /**
@@ -95,5 +96,25 @@ export const auth = betterAuth({
       enabled: Boolean(cookieDomain),
       ...(cookieDomain ? { domain: cookieDomain } : {}),
     },
+  },
+  // Honeypot for the /register form. `website` is a name real users never
+  // fill (it's visually hidden client-side) but generic form-filling bots
+  // commonly do. additionalFields (not a raw extra body key) is what
+  // guarantees this actually survives better-auth's own input validation
+  // and reaches the hook below — returned: false keeps it out of API
+  // responses too. This only protects sign-up called through better-auth's
+  // own endpoint; it does nothing by itself if bots call the DB directly,
+  // which they can't from outside anyway.
+  user: {
+    additionalFields: {
+      website: { type: "string", required: false, input: true, returned: false },
+    },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-up/email" && ctx.body?.website) {
+        throw new APIError("BAD_REQUEST", { message: "Registration failed" });
+      }
+    }),
   },
 });
