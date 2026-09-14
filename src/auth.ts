@@ -21,6 +21,11 @@ import { mailer, mailFrom } from "./mailer.js";
  *     - optional; email+password sign-up and password reset only enable
  *       once these exist (see mailer.ts) — off by default, same pattern
  *       as the social providers above.
+ *   TURNSTILE_SECRET_KEY
+ *     - optional; verifies the Cloudflare Turnstile token kleinbem-site's
+ *       /register page collects. Same off-by-default pattern — sign-up
+ *       proceeds unverified until this is set, never hard-fails on a
+ *       missing secret.
  */
 
 const required = ["BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "TRUSTED_ORIGINS"] as const;
@@ -71,6 +76,25 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
 }
 
 const cookieDomain = process.env.COOKIE_DOMAIN;
+
+async function verifyTurnstile(token: unknown): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true; // feature dormant until the secret is set
+  if (typeof token !== "string" || !token) return false;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret, response: token }),
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { success?: boolean };
+    return data.success === true;
+  } catch (err) {
+    console.error("Turnstile verification request failed", err);
+    return false;
+  }
+}
 
 export const auth = betterAuth({
   database: new Database(dbPath),
@@ -123,12 +147,16 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       website: { type: "string", required: false, input: true, returned: false },
+      turnstileToken: { type: "string", required: false, input: true, returned: false },
     },
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email" && ctx.body?.website) {
         throw new APIError("BAD_REQUEST", { message: "Registration failed" });
+      }
+      if (ctx.path === "/sign-up/email" && !(await verifyTurnstile(ctx.body?.turnstileToken))) {
+        throw new APIError("BAD_REQUEST", { message: "Verification failed — please try again" });
       }
     }),
   },
