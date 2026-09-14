@@ -91,6 +91,21 @@ export const auth = betterAuth({
     },
   },
   socialProviders,
+  session: {
+    // "Stay logged in" — sessions are valid up to 30 days, refreshed
+    // (rolling) once a day while active so a regular visitor is
+    // effectively never logged out. Applies to every sign-in method
+    // (social + email/password) since it's server-side session validity,
+    // not a cookie setting. The email/password form separately offers a
+    // "Remember me" checkbox (better-auth's built-in rememberMe on
+    // /sign-in/email) — unchecking it doesn't shorten this 30-day window,
+    // it just makes the *cookie* itself session-only (cleared when the
+    // browser closes) instead of persistent. Social sign-in has no
+    // equivalent client-side toggle in better-auth, so those sessions
+    // always get a persistent cookie.
+    expiresIn: 60 * 60 * 24 * 30,
+    updateAge: 60 * 60 * 24,
+  },
   advanced: {
     crossSubDomainCookies: {
       enabled: Boolean(cookieDomain),
