@@ -15,14 +15,14 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "better-auth": "1.7.4",
+    "better-auth": "1.7.5",
     "better-sqlite3": "^12.2.0",
-    "nodemailer": "^10.0.9"
+    "nodemailer": "^10.0.10"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^26.5.1",
-    "@types/nodemailer": "^8.0.1",
+    "@types/node": "^26.6.2",
+    "@types/nodemailer": "^8.0.2",
     "typescript": "^7.0.2"
   }
 }
